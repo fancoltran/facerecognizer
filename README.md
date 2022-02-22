@@ -1,2 +1,2 @@
-# facerecognizervhv
+# facerecognizer
 Face Recognition 
