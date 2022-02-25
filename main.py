@@ -30,7 +30,6 @@ def getData():
     dicts = Account.getFaces("")
     return dicts
 
-
 print("[INFO] starting video stream...")
 cap = cv2.VideoCapture(Utils.gstreamer_pipeline(), cv2.CAP_GSTREAMER)
 time.sleep(2)  # allow the camera sensor to warm up for 2 seconds
@@ -38,14 +37,13 @@ time.sleep(2)  # allow the camera sensor to warm up for 2 seconds
 # share variables between processes
 inputQueue = Queue(maxsize=1)
 outputQueue = Queue(maxsize=1)
-inputSave = Queue(maxsize=1)
-outputSave = Queue(maxsize=1)
 detections = None
 tempQueue = Queue(maxsize=1)
 dictQueue = Queue()
 dictQueue.put(getData())
 # start process
 print("[INFO] starting face detection process...")
+
 p0 = Process(target=FaceRecognition().classifyFrame, args=(inputQueue, outputQueue, dictQueue))
 p0.daemon = True
 p0.start()
@@ -57,18 +55,11 @@ p1.start()
 preFaces = []
 preTemps = []
 preLabels = []
-
 print("[INFO] starting update process...")
 p2 = Process(target=Scheduler(5).syncData, args=(dictQueue,))
 p2.daemon = True
 p2.start()
 fontText = ImageFont.truetype(font='arial.ttf', size=20, encoding='utf-8')
-
-print("[INFO] starting save faces process...")
-p3 = Process(target=Utils().saveAttendanceRecord, args=(inputSave, outputSave))
-p3.daemon = True
-p3.start()
-
 
 def updateFrame():
     global frame, window, cap, detections, tImg, break_frame, faces, labels, facesList, preFaces, preTemps, preLabels, fontText
@@ -80,18 +71,18 @@ def updateFrame():
     endFaceBefore, endFaceAfter = [], []
     if facesList:
         endFaceBefore = facesList[-1]
-
+    
     if (break_frame % 1 == 0) and frame is not None:
         break_frame = 0
         if inputQueue.empty(): inputQueue.put(frame)
-
+        
         if not outputQueue.empty():
             result = outputQueue.get()
             detections = result['detections']
             listLabels = result['labels']
             listFaces = result['faces']
             orgFrame = cv2.cvtColor(result['frame'], cv2.COLOR_BGR2RGB)
-
+        
         if not tempQueue.empty(): tImg = tempQueue.get()
         if detections is not None and tImg is not None:
             listTMaxs = Temperature.calculateTemperature(detections, tImg)
@@ -100,27 +91,23 @@ def updateFrame():
                 preLabels = listLabels
             preTemps = listTMaxs
             for i in range(min(len(listLabels), len(listFaces), len(listTMaxs))):
-                dictsSave = {}
                 label = listLabels[i].split('_')[0]
                 face = listFaces[i]
                 (sX, sY, eX, eY) = face
                 faceImg = orgFrame[sY:eY, sX:eX]
                 faceToSave = cv2.cvtColor(cv2.resize(faceImg, (150, 200)), cv2.COLOR_BGR2RGB)
-
+                
+                
                 if label != 'người lạ' and label not in labels:
                     faceImg = ImageTk.PhotoImage(Image.fromarray(cv2.resize(faceImg, (150, 150))))
                     studentId = listLabels[i].split('_')[1]
                     labels.append(label)
                     faces.append(face)
                     facesList.append(faceImg)
-                    dictsSave['face'] = faceToSave
-                    dictsSave['studentId'] = studentId
-                    if inputSave.empty(): inputSave.put(dictsSave)
-                    if not outputSave.empty():
-                        path = outputSave.get()
-                        AttendanceLog.save(studentId, path)
+                    path = Utils.saveAttendanceRecord(faceToSave, studentId, label)
+                    AttendanceLog.save(studentId, path)
                     temps.append(listTMaxs[i])
-
+            
             if len(labels) > config.NUM_FACES:
                 labels.pop(0)
                 faces.pop(0)
@@ -150,18 +137,18 @@ def updateFrame():
 
     if facesList:
         endFaceAfter = facesList[-1]
-
+    
     # Update image
     canvas.create_image(500, 0, anchor=tk.N, image=frame)
-
+    
     if endFaceAfter != endFaceBefore:
         for i in range(min(len(faces), config.NUM_FACES)):
             canvasFaces[i].create_image(75, 0, anchor=tk.N, image=facesList[i])
             nameLabels[i].config(text=f"{labels[i]}")
             tempLabels[i].config(text=f"{round(temps[i], 1)}°C")
-
+    
     # Repeat every 'interval' ms
-    window.after(1, updateFrame)
+    window.after(20, updateFrame)
 
 
 # global variables
@@ -194,3 +181,4 @@ delay = 5
 updateFrame()
 
 window.mainloop()
+

@@ -40,13 +40,10 @@ class Utils:
     )
 
     @staticmethod
-    def saveAttendanceRecord(inputSave, outputSave):
-        if not inputSave.empty():
-            dictsSave = inputSave.get()
-            face = dictsSave['face']
-            studentId = dictsSave['studentId']
-            path = FaceRecognition.saveFace(face, studentId, config.IMAGE_FOLDER)
-            outputSave.put(path)
+    def saveAttendanceRecord(face, studentId, name):
+        path = FaceRecognition.saveFace(face, studentId, config.IMAGE_FOLDER)
+        
+        return path
 
     @staticmethod
     def saveToDb(studentId, path):
