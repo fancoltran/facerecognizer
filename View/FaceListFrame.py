@@ -22,6 +22,7 @@ class FaceListFrame(ttk.Frame):
 
         for i in range(config.NUM_FACES):
             canvasFaces[i] = tk.Label(self, image=image)
+            canvasFaces[i].image = image
             nameLabels[i] = ttk.Label(self, text="Demo", font=nameFontStyle)
             tempLabels[i] = ttk.Label(self, text="", font=tempFontStyle)
 

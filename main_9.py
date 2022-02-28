@@ -128,7 +128,7 @@ def updateFrame():
         xy = (face[0], max(face[1] - 20, 0))
         draw.text(xy, "{} {:.1f}".format(name, tMax), font=fontText, fill='green')
 
-    pilFrame = pilFrame.resize((1000, 390))
+    pilFrame = pilFrame.resize((980, 380))
     frame = ImageTk.PhotoImage(pilFrame)  # to ImageTk format
 
     del draw
