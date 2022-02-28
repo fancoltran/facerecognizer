@@ -58,7 +58,7 @@ print("[INFO] starting update process...")
 p2 = Process(target=Scheduler(3000).syncData, args=(dictQueue,))
 p2.daemon = True
 p2.start()
-fontText = ImageFont.truetype(font='arial.ttf', size=20, encoding='utf-8')
+fontText = ImageFont.truetype(font='Assets/arial.ttf', size=20, encoding='utf-8')
 
 def updateFrame():
     global frame, window, cap, detections, tImg, break_frame, faces, labels, facesList, preFaces, preTemps, preLabels, fontText
