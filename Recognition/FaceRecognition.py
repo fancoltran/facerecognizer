@@ -58,7 +58,7 @@ class FaceRecognition:
         listFaces = []
 
         (h, w) = frame.shape[:2]
-        print(h,w)
+
         for i in range(0, detections.shape[2]):
             confidence = detections[0, 0, i, 2]
             saveMin = 100
@@ -79,7 +79,6 @@ class FaceRecognition:
 
                 if face is not None and face != []:
                     checkmask = FaceRecognition.check_mask_bonus(startX, startY, endX, endY, frame)
-                    print(checkmask)
                     listFaceVector = []
                     faceVector = FaceRecognition.convertFaceToArray(face)
                     faceVector = np.resize(faceVector, (256,))
@@ -93,19 +92,15 @@ class FaceRecognition:
                         distanceFace = (distance.cdist(listFaceVector, numberLabel))
 
                         minDistanceFace = min(distanceFace.max(axis=0))
-                        if minDistanceFace <= 14:
-                            print(minDistanceFace)
+
                         if minDistanceFace <= 9.5 and checkmask == 0:
                             if minDistanceFace <= saveMin:
                                 saveMin = minDistanceFace
-                                print(minDistanceFace)
-                                print(label)
                                 predictLabel = label
+
                         if minDistanceFace <= 12 and checkmask == 1:
                             if minDistanceFace <= saveMin_mask:
                                 saveMin_mask = minDistanceFace
-                                print(minDistanceFace)
-                                print(label)
                                 predictLabel = label
 
                 listLabels.append(predictLabel)
