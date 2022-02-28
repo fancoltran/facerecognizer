@@ -23,7 +23,6 @@ faces = []
 temps = []
 facesList = []
 
-
 def getData():
     Account.update()
     Account.updateSound()
@@ -139,11 +138,11 @@ def updateFrame():
         endFaceAfter = facesList[-1]
     
     # Update image
-    canvas.create_image(500, 0, anchor=tk.N, image=frame)
-    
+    labelImg.configure(image=frame)
+
     if endFaceAfter != endFaceBefore:
         for i in range(min(len(faces), config.NUM_FACES)):
-            canvasFaces[i].create_image(75, 0, anchor=tk.N, image=facesList[i])
+            canvasFaces[i].configure(image=facesList[i])
             nameLabels[i].config(text=f"{labels[i]}")
             tempLabels[i].config(text=f"{round(temps[i], 1)}°C")
     
@@ -163,13 +162,9 @@ window = tk.Tk()
 window.title("Diem danh")
 window.geometry("1024x600")
 photo = None
-canvas = tk.Canvas(window, width=1000, height=400)
-canvas.pack(side=tk.TOP, expand=True, fill=tk.Y)
 
-# updateBtn = tk.Button(window, text="Cap nhat", bg="#3CCEEB", command=update)
-# updateBtn.pack(side=tk.RIGHT)
-# exitBtn = tk.Button(window, text="Thoat", bg="#3CCEEB", command=exitHandler)
-# exitBtn.pack(side=tk.RIGHT)
+labelImg = tk.Label(window, width=1000, height=400)
+labelImg.pack(side=tk.TOP, expand=True, fill=tk.Y)
 
 faceFrame = FaceListFrame(window)
 

@@ -15,7 +15,7 @@ class FaceListFrame(ttk.Frame):
         nameFontStyle = tkFont.Font(family="Lucida Grande", size=10)
         tempFontStyle = tkFont.Font(family="Lucida Grande", size=10)
         for i in range(config.NUM_FACES):
-            canvasFaces[i] = tk.Canvas(self, height=150, width=150, highlightthickness=1, highlightbackground="black")
+            canvasFaces[i] = tk.Label(self)
             nameLabels[i] = ttk.Label(self, text="Demo", font=nameFontStyle)
             tempLabels[i] = ttk.Label(self, text="", font=tempFontStyle)
 
