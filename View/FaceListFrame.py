@@ -28,3 +28,11 @@ class FaceListFrame(ttk.Frame):
             tempLabels[i].grid(column=i, row=0)
             canvasFaces[i].grid(column=i, row=1, padx=2, pady=2)
             nameLabels[i].grid(column=i, row=2)
+
+        defaultImage = cv2.imread('Assets/avatar.png')
+        pilImage = Image.fromarray(cv2.cvtColor(defaultImage, cv2.COLOR_BGR2RGB))
+        pilImage = pilImage.resize((150, 150))
+        image = ImageTk.PhotoImage(pilImage)
+
+        for i in range(config.NUM_FACES):
+            canvasFaces[i].configure(image=image)
