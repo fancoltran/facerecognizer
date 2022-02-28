@@ -100,12 +100,16 @@ def updateFrame():
                 if label != 'người lạ' and label not in labels:
                     faceImg = ImageTk.PhotoImage(Image.fromarray(cv2.resize(faceImg, (150, 150))))
                     studentId = listLabels[i].split('_')[1]
-                    labels.append(label)
-                    faces.append(face)
-                    facesList.append(faceImg)
                     path = Utils.saveAttendanceRecord(faceToSave, studentId, label)
-                    AttendanceLog.save(studentId, path)
-                    temps.append(listTMaxs[i])
+
+                    saveResult = AttendanceLog.save(studentId, path)
+                    print('save result:', saveResult)
+                    if saveResult is not None:
+                        labels.append(label)
+                        faces.append(face)
+                        facesList.append(faceImg)
+                        # Utils.saveToDb(studentId, path)
+                        temps.append(listTMaxs[i])
             
             if len(labels) > config.NUM_FACES:
                 labels.pop(0)
