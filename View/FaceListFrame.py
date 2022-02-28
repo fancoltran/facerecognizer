@@ -14,8 +14,14 @@ class FaceListFrame(ttk.Frame):
         tempLabels = [None] * config.NUM_FACES
         nameFontStyle = tkFont.Font(family="Lucida Grande", size=10)
         tempFontStyle = tkFont.Font(family="Lucida Grande", size=10)
+
+        defaultImage = cv2.imread('Assets/avatar.png')
+        pilImage = Image.fromarray(cv2.cvtColor(defaultImage, cv2.COLOR_BGR2RGB))
+        pilImage = pilImage.resize((150, 150))
+        image = ImageTk.PhotoImage(pilImage)
+
         for i in range(config.NUM_FACES):
-            canvasFaces[i] = tk.Label(self)
+            canvasFaces[i] = tk.Label(self, image=image)
             nameLabels[i] = ttk.Label(self, text="Demo", font=nameFontStyle)
             tempLabels[i] = ttk.Label(self, text="", font=tempFontStyle)
 
@@ -29,10 +35,3 @@ class FaceListFrame(ttk.Frame):
             canvasFaces[i].grid(column=i, row=1, padx=2, pady=2)
             nameLabels[i].grid(column=i, row=2)
 
-        defaultImage = cv2.imread('Assets/avatar.png')
-        pilImage = Image.fromarray(cv2.cvtColor(defaultImage, cv2.COLOR_BGR2RGB))
-        pilImage = pilImage.resize((150, 150))
-        image = ImageTk.PhotoImage(pilImage)
-
-        for i in range(config.NUM_FACES):
-            canvasFaces[i].configure(image=image)

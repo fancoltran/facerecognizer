@@ -128,7 +128,7 @@ def updateFrame():
         xy = (face[0], max(face[1] - 20, 0))
         draw.text(xy, "{} {:.1f}".format(name, tMax), font=fontText, fill='green')
 
-    pilFrame = pilFrame.resize((1000, 400))
+    pilFrame = pilFrame.resize((1000, 390))
     frame = ImageTk.PhotoImage(pilFrame)  # to ImageTk format
 
     del draw
@@ -163,7 +163,7 @@ window.title("Diem danh")
 window.geometry("1024x600")
 photo = None
 
-labelImg = tk.Label(window, width=1000, height=400)
+labelImg = tk.Label(window)
 labelImg.pack(side=tk.TOP, expand=True, fill=tk.Y)
 
 faceFrame = FaceListFrame(window)
