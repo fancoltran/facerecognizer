@@ -7,6 +7,7 @@ from gtts import gTTS
 import os
 import gc
 import vlc
+import time
 
 # Load the TFLite model and allocate tensors.
 import config
@@ -116,7 +117,10 @@ class FaceRecognition:
 
     @staticmethod
     def saveFace(face, id, local):
-        p = os.path.sep.join([local, "{}.jpg".format(id)])
+        print(type(id))
+        imageName = str(id) + '_' + str(time.time())
+        # print(imageName)
+        p = os.path.sep.join([local, "{}.jpg".format(imageName)])
         cv2.imwrite(p, face)
         return p
 
