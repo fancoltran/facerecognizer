@@ -55,7 +55,7 @@ preFaces = []
 preTemps = []
 preLabels = []
 print("[INFO] starting update process...")
-p2 = Process(target=Scheduler(5).syncData, args=(dictQueue,))
+p2 = Process(target=Scheduler(config.UPDATE_TIME).syncData, args=(dictQueue,))
 p2.daemon = True
 p2.start()
 fontText = ImageFont.truetype(font='Assets/arial.ttf', size=20, encoding='utf-8')
