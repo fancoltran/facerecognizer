@@ -69,7 +69,7 @@ p3.start()
 def updateFrame():
     global frame, window, cap, detections, tImg, break_frame, faces, labels, facesList, preFaces, preTemps, preLabels, fontText
     frame = cap.read()[1]
-    frame = imutils.resize(frame, width=640)
+    frame = imutils.resize(frame, width= config.PIXEL_FRAME)
     break_frame += 1
     listFaces = []
     listLabels = []

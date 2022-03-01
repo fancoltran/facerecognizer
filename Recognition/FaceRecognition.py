@@ -93,12 +93,12 @@ class FaceRecognition:
 
                         minDistanceFace = min(distanceFace.max(axis=0))
 
-                        if minDistanceFace <= 9.5 and checkmask == 0:
+                        if minDistanceFace <= config.DISTANCE_MASK and checkmask == 0:
                             if minDistanceFace <= saveMin:
                                 saveMin = minDistanceFace
                                 predictLabel = label
 
-                        if minDistanceFace <= 12 and checkmask == 1:
+                        if minDistanceFace <= config.DISTANCE_NOMASK and checkmask == 1:
                             if minDistanceFace <= saveMin_mask:
                                 saveMin_mask = minDistanceFace
                                 predictLabel = label
