@@ -101,14 +101,10 @@ def updateFrame():
                     faceImg = ImageTk.PhotoImage(Image.fromarray(cv2.resize(faceImg, (150, 150))))
                     studentId = listLabels[i].split('_')[1]
                     path = Utils.saveAttendanceRecord(faceToSave, studentId, label)
-
-                    saveResult = AttendanceLog.save(studentId, path)
-                    print('save result:', saveResult)
-                    if saveResult is not None:
+                    if AttendanceLog.save(studentId, path) is not None:
                         labels.append(label)
                         faces.append(face)
                         facesList.append(faceImg)
-                        # Utils.saveToDb(studentId, path)
                         temps.append(listTMaxs[i])
             
             if len(labels) > config.NUM_FACES:
