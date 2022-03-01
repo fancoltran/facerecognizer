@@ -1,7 +1,7 @@
 from Recognition.FaceRecognition import FaceRecognition
 import config
 from Model.AttendanceLog import AttendanceLog
-
+import gc
 class Utils:
     @staticmethod
     def removeDictKey(dictionary, key):
@@ -42,8 +42,20 @@ class Utils:
     @staticmethod
     def saveAttendanceRecord(face, studentId, name):
         path = FaceRecognition.saveFace(face, studentId, config.IMAGE_FOLDER)
-        
+        # FaceRecognition.playSound(name, config.SOUND_FOLDER)
         return path
+
+    @staticmethod
+    def playSounds(inputName):
+        while True:
+            gc.collect()
+            if not inputName.empty():
+                name = inputName.get()
+                FaceRecognition.playSound(name, config.SOUND_FOLDER)
+                print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+                print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+                print('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+
 
     @staticmethod
     def saveToDb(studentId, path):

@@ -40,6 +40,7 @@ detections = None
 tempQueue = Queue(maxsize=1)
 dictQueue = Queue()
 dictQueue.put(getData())
+inputName = Queue(maxsize=1)
 # start process
 print("[INFO] starting face detection process...")
 
@@ -59,6 +60,11 @@ p2 = Process(target=Scheduler(config.UPDATE_TIME).syncData, args=(dictQueue,))
 p2.daemon = True
 p2.start()
 fontText = ImageFont.truetype(font='Assets/arial.ttf', size=20, encoding='utf-8')
+
+print("[INFO] starting update process...")
+p3 = Process(target= Utils().playSounds, args=(inputName,))
+p3.daemon = True
+p3.start()
 
 def updateFrame():
     global frame, window, cap, detections, tImg, break_frame, faces, labels, facesList, preFaces, preTemps, preLabels, fontText
@@ -102,10 +108,12 @@ def updateFrame():
                     studentId = listLabels[i].split('_')[1]
                     path = Utils.saveAttendanceRecord(faceToSave, studentId, label)
                     if AttendanceLog.save(studentId, path) is not None:
+                        inputName.put(label)
                         labels.append(label)
                         faces.append(face)
                         facesList.append(faceImg)
                         temps.append(listTMaxs[i])
+
             
             if len(labels) > config.NUM_FACES:
                 labels.pop(0)
@@ -147,7 +155,7 @@ def updateFrame():
             tempLabels[i].config(text=f"{round(temps[i], 1)}°C")
     
     # Repeat every 'interval' ms
-    window.after(20, updateFrame)
+    window.after(1, updateFrame)
 
 
 # global variables
@@ -172,7 +180,7 @@ canvasFaces = faceFrame.canvasFaces
 nameLabels = faceFrame.nameLabels
 tempLabels = faceFrame.tempLabels
 
-delay = 5
+delay = 1
 updateFrame()
 
 window.mainloop()

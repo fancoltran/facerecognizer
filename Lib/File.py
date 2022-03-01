@@ -15,7 +15,7 @@ class File:
     @staticmethod
     def saveSound(name, folder):
         try:
-            output = gTTS("f" + name + "điểm danh thành công", lang="vi", slow=False)
+            output = gTTS("Bạn" + name + "điểm danh thành công", lang="vi", slow=False)
             output.save(os.path.join(folder, name + ".mp3"))
         except:
             return None
