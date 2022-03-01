@@ -2,3 +2,4 @@ Sounds/
 Images/
 studentDb
 .idea/
+**/__pycache__/

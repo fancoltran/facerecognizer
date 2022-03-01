@@ -1,5 +1,5 @@
 import tkinter as tk
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw, ImageFont
 from View.FaceListFrame import FaceListFrame
 from multiprocessing import Process
 from multiprocessing import Queue
@@ -7,6 +7,7 @@ import numpy as np
 import imutils
 import cv2
 from Model.Account import Account
+from Model.AttendanceLog import AttendanceLog
 from Recognition.FaceRecognition import FaceRecognition
 from gtts import gTTS
 import time
@@ -14,41 +15,19 @@ import time
 from Lib.Utils import Utils
 from Lib.Temperature import Temperature
 import config
+from datetime import datetime
+from Scheduler import Scheduler
 
 labels = []
 faces = []
 temps = []
 facesList = []
 
-
 def getData():
     Account.update()
     Account.updateSound()
     dicts = Account.getFaces("")
     return dicts
-
-
-def getUpdateData():
-    Account.update()
-    Account.updateSound()
-    dicts = Account.getFaces("update")
-    return dicts
-
-
-def update():
-    if not dictQueue.full():
-        dictQueue.put(getUpdateData())
-        print(getUpdateData().keys())
-
-
-def exitHandler():
-    p0.terminate()
-    p1.terminate()
-    p0.join()
-    p1.join()
-    window.destroy()
-    cap.release()
-
 
 print("[INFO] starting video stream...")
 cap = cv2.VideoCapture(Utils.gstreamer_pipeline(), cv2.CAP_GSTREAMER)
@@ -60,7 +39,6 @@ outputQueue = Queue(maxsize=1)
 detections = None
 tempQueue = Queue(maxsize=1)
 dictQueue = Queue()
-
 dictQueue.put(getData())
 # start process
 print("[INFO] starting face detection process...")
@@ -75,21 +53,20 @@ p1.daemon = True
 p1.start()
 preFaces = []
 preTemps = []
-
+preLabels = []
 print("[INFO] starting update process...")
-p2 = Process(target=Account().syncl, args=(dictQueue,))
+p2 = Process(target=Scheduler(5).syncData, args=(dictQueue,))
 p2.daemon = True
 p2.start()
-
+fontText = ImageFont.truetype(font='Assets/arial.ttf', size=20, encoding='utf-8')
 
 def updateFrame():
-    global frame, window, cap, detections, tImg, break_frame, faces, labels, facesList, preFaces, preTemps
+    global frame, window, cap, detections, tImg, break_frame, faces, labels, facesList, preFaces, preTemps, preLabels, fontText
     frame = cap.read()[1]
     frame = imutils.resize(frame, width=640)
     break_frame += 1
     listFaces = []
     listLabels = []
-    listTMaxs = []
     endFaceBefore, endFaceAfter = [], []
     if facesList:
         endFaceBefore = facesList[-1]
@@ -110,6 +87,7 @@ def updateFrame():
             listTMaxs = Temperature.calculateTemperature(detections, tImg)
             if listFaces:
                 preFaces = listFaces
+                preLabels = listLabels
             preTemps = listTMaxs
             for i in range(min(len(listLabels), len(listFaces), len(listTMaxs))):
                 label = listLabels[i].split('_')[0]
@@ -120,41 +98,57 @@ def updateFrame():
                 
                 
                 if label != 'người lạ' and label not in labels:
-                    faceImg = ImageTk.PhotoImage(Image.fromarray(cv2.resize(faceImg, (150, 200))))
+                    faceImg = ImageTk.PhotoImage(Image.fromarray(cv2.resize(faceImg, (150, 150))))
                     studentId = listLabels[i].split('_')[1]
-                    labels.append(label)
-                    faces.append(face)
-                    facesList.append(faceImg)
                     path = Utils.saveAttendanceRecord(faceToSave, studentId, label)
-                    Utils.saveToDb(studentId, path)
-                    temps.append(listTMaxs[i])
+
+                    saveResult = AttendanceLog.save(studentId, path)
+                    print('save result:', saveResult)
+                    if saveResult is not None:
+                        labels.append(label)
+                        faces.append(face)
+                        facesList.append(faceImg)
+                        # Utils.saveToDb(studentId, path)
+                        temps.append(listTMaxs[i])
             
             if len(labels) > config.NUM_FACES:
                 labels.pop(0)
                 faces.pop(0)
                 facesList.pop(0)
                 temps.pop(0)
-    
-    for face, tMax in zip(preFaces, preTemps):
-        cv2.rectangle(frame, (face[0], face[1]), (face[2], face[3]), (0, 255, 0), 2)
-        
-        cv2.putText(frame, "Tmax={:.1f} C".format(tMax), (face[0], face[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.45,
-                    (0, 255, 0), 2)
-    
-    frame = cv2.cvtColor(cv2.resize(frame, (800, 350)), cv2.COLOR_BGR2RGB)
-    frame = Image.fromarray(frame)  # to PIL format
-    frame = ImageTk.PhotoImage(frame)  # to ImageTk format
-    
+
+    # show bounding boxes and labels
+    pilFrame = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+    draw = ImageDraw.Draw(pilFrame)
+
+    for face, tMax, label in zip(preFaces, preTemps, preLabels):
+        name = label.split('_')[0]
+        if name != 'người lạ':
+            name = name.split(' ')[-1]
+
+        draw.rectangle([(face[0], face[1]), (face[2], face[3])], outline='red')
+
+        xy = (face[0], max(face[1] - 20, 0))
+        draw.text(xy, "{} {:.1f}".format(name, tMax), font=fontText, fill='green')
+
+    pilFrame = pilFrame.resize((980, 380))
+    frame = ImageTk.PhotoImage(pilFrame)  # to ImageTk format
+
+    del draw
+    del pilFrame
+
     if facesList:
         endFaceAfter = facesList[-1]
     
     # Update image
-    canvas.create_image(500, 10, anchor=tk.N, image=frame)
-    
+    labelImg.configure(image=frame)
+
     if endFaceAfter != endFaceBefore:
         for i in range(min(len(faces), config.NUM_FACES)):
-            canvasFaces[i].create_image(90, 90, image=facesList[i])
-            nameLabels[i].config(text=f"{labels[i]} {round(temps[i], 1)} C")
+            canvasFaces[i].configure(image=facesList[i])
+            nameLabels[i].config(text=f"{labels[i]}")
+            tempLabels[i].config(text=f"{round(temps[i], 1)}°C")
     
     # Repeat every 'interval' ms
     window.after(20, updateFrame)
@@ -172,18 +166,15 @@ window = tk.Tk()
 window.title("Diem danh")
 window.geometry("1024x600")
 photo = None
-canvas = tk.Canvas(window, width=1000, height=350, highlightthickness=1, highlightbackground="black")
-canvas.pack(side=tk.TOP, expand=True, fill=tk.Y)
 
-# updateBtn = tk.Button(window, text="Cap nhat", bg="#3CCEEB", command=update)
-# updateBtn.pack(side=tk.RIGHT)
-# exitBtn = tk.Button(window, text="Thoat", bg="#3CCEEB", command=exitHandler)
-# exitBtn.pack(side=tk.RIGHT)
+labelImg = tk.Label(window)
+labelImg.pack(side=tk.TOP, expand=True, fill=tk.Y)
 
 faceFrame = FaceListFrame(window)
 
 canvasFaces = faceFrame.canvasFaces
 nameLabels = faceFrame.nameLabels
+tempLabels = faceFrame.tempLabels
 
 delay = 5
 updateFrame()
