@@ -106,7 +106,7 @@ def updateFrame():
                 if label != 'người lạ' and label not in labels:
                     faceImg = ImageTk.PhotoImage(Image.fromarray(cv2.resize(faceImg, (150, 150))))
                     studentId = listLabels[i].split('_')[1]
-                    path = Utils.saveAttendanceRecord(faceToSave, studentId, label)
+                    path = FaceRecognition.saveFace(faceToSave, studentId, config.IMAGE_FOLDER)
                     if AttendanceLog.save(studentId, path) is not None:
                         inputName.put(label)
                         labels.append(label)
