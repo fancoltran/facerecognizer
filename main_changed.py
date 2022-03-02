@@ -75,7 +75,7 @@ def checkForAttendance(label, currentLabels: list, timeSaved: list) -> bool:
         else:
             index = currentLabels.index(label)
             diff = datetime.today() - timeSaved[index]
-            if diff.seconds/60 > 5:
+            if diff.seconds > config.CONFIG_TIME:
                 return True
     return False
 

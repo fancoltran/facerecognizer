@@ -1,7 +1,7 @@
 from Lib.Data import Data
 
 DOMAIN = 'coquan.vn'
-CONFIG_TIME = 300
+CONFIG_TIME = 30
 mainDB = Data('sqlite:///studentDb')
 currentDeviceId = "1423221105272"
 currentToken = "be693bd5dd52d9b8a5bbb07f13a9875e5be7fc366636104e"
