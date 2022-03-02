@@ -68,6 +68,7 @@ p3.daemon = True
 p3.start()
 
 def checkForAttendance(label, currentLabels: list, timeSaved: list) -> bool:
+    print('checking:', currentLabels, timeSaved)
     if label != 'người lạ':
         if label not in currentLabels:
             return True
@@ -126,12 +127,12 @@ def updateFrame():
                         attendanceTime.append(datetime.today())
                         temps.append(listTMaxs[i])
 
-                        if len(labels) > config.NUM_FACES:
-                            labels.pop(0)
-                            faces.pop(0)
-                            faceImagesList.pop(0)
-                            temps.pop(0)
-                            attendanceTime.pop(0)
+            if len(labels) > config.NUM_FACES:
+                labels.pop(0)
+                faces.pop(0)
+                faceImagesList.pop(0)
+                temps.pop(0)
+                attendanceTime.pop(0)
 
     # show bounding boxes and labels
     pilFrame = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
