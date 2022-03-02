@@ -68,14 +68,15 @@ p3.daemon = True
 p3.start()
 
 def checkForAttendance(label, currentLabels: list, timeSaved: list) -> bool:
-    print('checking:', currentLabels, timeSaved)
     if label != 'người lạ':
         if label not in currentLabels:
             return True
         else:
             index = currentLabels.index(label)
-            diff = datetime.today() - timeSaved[index]
+            currentTime = datetime.today()
+            diff = currentTime - timeSaved[index]
             if diff.seconds > config.CONFIG_TIME:
+                timeSaved[index] = currentTime
                 return True
     return False
 
