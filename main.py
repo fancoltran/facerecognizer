@@ -67,6 +67,8 @@ p3 = Process(target=Utils().playSounds, args=(inputName,))
 p3.daemon = True
 p3.start()
 
+
+
 def checkForAttendance(label, currentLabels: list, timeSaved: list) -> bool:
     if label != 'người lạ':
         if label not in currentLabels:
@@ -115,7 +117,8 @@ def updateFrame():
                 (sX, sY, eX, eY) = face
                 faceImg = orgFrame[sY:eY, sX:eX]
                 faceToSave = cv2.cvtColor(cv2.resize(faceImg, (150, 200)), cv2.COLOR_BGR2RGB)
-
+                if label == 'người lạ':
+                    FaceRecognition.saveUnKownFace(faceToSave, config.IMAGE_FOLDER_UNKOWNFACE)
                 if checkForAttendance(label, labels, attendanceTime):
                     faceImg = ImageTk.PhotoImage(Image.fromarray(cv2.resize(faceImg, (150, 150))))
                     studentId = listLabels[i].split('_')[1]
@@ -150,7 +153,7 @@ def updateFrame():
         xy = (face[0], max(face[1] - 20, 0))
         draw.text(xy, "{} {:.1f}".format(name, tMax), font=fontText, fill='green')
 
-    pilFrame = pilFrame.resize((980, 380))
+    pilFrame = pilFrame.resize((1020, 400))
     frame = ImageTk.PhotoImage(pilFrame)  # to ImageTk format
 
     del draw

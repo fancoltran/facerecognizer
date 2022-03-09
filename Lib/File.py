@@ -13,10 +13,12 @@ class File:
             return 'data:image/jpeg;base64,' + base64.b64encode(imageFile.read()).decode('utf-8')
 
     @staticmethod
-    def saveSound(name, folder):
+    def saveSound(id, name, folder):
         try:
             output = gTTS("Bạn" + name + "điểm danh thành công", lang="vi", slow=False)
             output.save(os.path.join(folder, name + ".mp3"))
+            folder_path = './SaveDetectFace/' + id
+            os.makedirs(folder_path, exist_ok=True)
         except:
             return None
         return os.path.join(folder, name + ".mp3")

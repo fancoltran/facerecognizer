@@ -85,8 +85,8 @@ class Account:
             db.select(table.columns.accountId, table.columns.accountTitle).where(table.columns.updatedSound == 0)))
         items = []
         for row in data:
-            if File.saveSound(row[1], SOUND_FOLDER):
-                items.append({"accountId": row[0], "sound": File.saveSound(row[1], SOUND_FOLDER), "updatedSound": 1})
+            if File.saveSound(row[0], row[1], SOUND_FOLDER):
+                items.append({"accountId": row[0], "sound": File.saveSound(row[0], row[1], SOUND_FOLDER), "updatedSound": 1})
         for item in items:
             mainDB.executeQuery(
                 db.update(table).values(item).where(table.columns.accountId == item["accountId"]))

@@ -8,7 +8,7 @@ import os
 import gc
 import vlc
 import time
-
+import imutils
 # Load the TFLite model and allocate tensors.
 import config
 
@@ -116,18 +116,19 @@ class FaceRecognition:
         return name, id_
 
     @staticmethod
+    def saveUnKownFace(face, local):
+        p = os.path.sep.join([local, "{}.jpg".format(str(time.time()))])
+        cv2.imwrite(p, face)
+
+    @staticmethod
     def saveFace(face, id, local):
-        print(type(id))
         imageName = str(id) + '_' + str(time.time())
-        # print(imageName)
-        p = os.path.sep.join([local, "{}.jpg".format(imageName)])
+        p = os.path.sep.join([local+id, "{}.jpg".format(imageName)])
         cv2.imwrite(p, face)
         return p
 
     @staticmethod
     def playSound(name, local):
-        '''output = gTTS("f" +name+"điểm danh thành công", lang="vi", slow=False)
-        output.save(os.path.join(local, name + ".mp3"))'''
         p = vlc.MediaPlayer(os.path.join(local, name + ".mp3"))
         p.play()
 
@@ -149,6 +150,7 @@ class FaceRecognition:
                 # grab the frame from the input queue, resize it, and
                 # construct a blob from it
                 frame = inputQueue.get()
+                #frame = imutils.resize(frame, width=640)
                 result = {}
                 blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
 

@@ -15,8 +15,8 @@ class Utils:
         # capture_height=2464,
         capture_width=1280,
         capture_height=720,
-        display_width=1280,
-        display_height=720,
+        display_width=1020,
+        display_height=400,
         framerate=29.999999,
         flip_method=6,
         ):
