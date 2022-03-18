@@ -1,31 +1,52 @@
-
 from scipy.spatial import distance
+import cv2
 import tensorflow as tf
 import numpy as np
-import cv2
 from gtts import gTTS
 import os
 import gc
 import vlc
 import time
 import imutils
-# Load the TFLite model and allocate tensors.
 import config
 
+# Load face detection model - MobileFaceNet_SE
 interpreter = tf.lite.Interpreter(model_path="Recognition/face_detector/mobileFacenet_se.tflite")
 interpreter.allocate_tensors()
 # Get input and output tensors.
 inputDetails = interpreter.get_input_details()
 outputDetails = interpreter.get_output_details()
 
+# Load face embedding model 
 interpreterMask = tf.lite.Interpreter(model_path="Recognition/face_detector/facemask.tflite")
 interpreterMask.allocate_tensors()
 # Get input and output tensors.
 inputDetailsMask = interpreterMask.get_input_details()
 outputDetailsMask = interpreterMask.get_output_details()
 
+# Load masked face embedding model
+interpreterMaskEmbed = tf.lite.Interpreter(model_path="Recognition/mobilefacenet_facex.tflite")
+interpreterMaskEmbed.allocate_tensors()
+# Get input and output tensors.
+inputDetailsMaskEmbed = interpreterMaskEmbed.get_input_details()
+outputDetailsMaskEmbed = interpreterMaskEmbed.get_output_details()
+
+
 
 class FaceRecognition:
+
+    @staticmethod
+    def convertMaskedFaceToArray(face):
+        face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
+        face = cv2.resize(face, (112, 112))
+        face = face.astype('float32')
+        face = (face.transpose((2, 0, 1)) - 127.5)/128.0
+        face = np.expand_dims(face, axis=0)
+        interpreterMaskEmbed.set_tensor(inputDetailsMaskEmbed[0]['index'], face)
+        interpreterMaskEmbed.invoke()
+        outputData = interpreterMaskEmbed.get_tensor(outputDetailsMaskEmbed[0]['index'])
+        return outputData
+
 
     @staticmethod
     def convertFaceToArray(face):
@@ -166,6 +187,5 @@ class FaceRecognition:
                     result['detections'] = detections
                     result['frame'] = frame
                     outputQueue.put(result)
-
 
 
