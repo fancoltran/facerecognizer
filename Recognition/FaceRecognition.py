@@ -11,21 +11,21 @@ import imutils
 import config
 
 # Load face detection model - MobileFaceNet_SE
-interpreter = tf.lite.Interpreter(model_path="Recognition/face_detector/mobileFacenet_se.tflite")
+interpreter = tf.lite.Interpreter(model_path="Recognition/face_model/mobileFacenet_se.tflite")
 interpreter.allocate_tensors()
 # Get input and output tensors.
 inputDetails = interpreter.get_input_details()
 outputDetails = interpreter.get_output_details()
 
 # Load face embedding model 
-interpreterMask = tf.lite.Interpreter(model_path="Recognition/face_detector/facemask.tflite")
+interpreterMask = tf.lite.Interpreter(model_path="Recognition/face_model/facemask.tflite")
 interpreterMask.allocate_tensors()
 # Get input and output tensors.
 inputDetailsMask = interpreterMask.get_input_details()
 outputDetailsMask = interpreterMask.get_output_details()
 
 # Load masked face embedding model
-interpreterMaskEmbed = tf.lite.Interpreter(model_path="Recognition/mobilefacenet_facex.tflite")
+interpreterMaskEmbed = tf.lite.Interpreter(model_path="Recognition/face_model/mobilefacenet_facex.tflite")
 interpreterMaskEmbed.allocate_tensors()
 # Get input and output tensors.
 inputDetailsMaskEmbed = interpreterMaskEmbed.get_input_details()
@@ -157,8 +157,8 @@ class FaceRecognition:
 
     @staticmethod
     def classifyFrame(inputQueue, outputQueue, dictQueue):
-        net = cv2.dnn.readNetFromCaffe("Recognition/face_detector/deploy.prototxt",
-                                       "Recognition/face_detector/res10_300x300_ssd_iter_140000.caffemodel")
+        net = cv2.dnn.readNetFromCaffe("Recognition/face_model/deploy.prototxt",
+                                       "Recognition/face_model/res10_300x300_ssd_iter_140000.caffemodel")
         net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
         net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
