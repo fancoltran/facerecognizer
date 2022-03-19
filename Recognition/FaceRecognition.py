@@ -71,8 +71,8 @@ class FaceRecognition:
         interpreterMask.set_tensor(inputDetailsMask[0]['index'], input_dataMask)
         interpreterMask.invoke()
         predictions = interpreterMask.get_tensor(outputDetailsMask[0]['index'])
-        lable = np.argmax(predictions)
-        return lable
+        label = np.argmax(predictions)
+        return label
 
     @staticmethod
     def faceRecognition(detections, frame, dicts):
@@ -83,8 +83,8 @@ class FaceRecognition:
 
         for i in range(0, detections.shape[2]):
             confidence = detections[0, 0, i, 2]
-            saveMin = 100
-            saveMin_mask = 100
+            saveMaxSim = -1
+            saveMinDis = 100
             if (confidence < config.DETECTION_CONFIDENCE) or \
                     (detections[0, 0, i, 3:7].max() > 1) or \
                     (detections[0, 0, i, 3] > detections[0, 0, i, 5]) or \
@@ -108,22 +108,24 @@ class FaceRecognition:
                     listFaceVector.append(faceVectors)
                     listFaceVector = np.asarray(listFaceVector)
                     for label in dicts:
+                        if checkmask == int(label[-1]):
+                            if checkmask == 1:
+                                databaseVector = np.array(dicts.get(label))
+                                distances = distance.cdist(listFaceVector, databaseVector)
+                                minDistance = min(np.squeeze(distances))
 
-                        numberLabel = dicts.get(label)
-                        numberLabel=np.array(numberLabel)
-                        distanceFace = (distance.cdist(listFaceVector, numberLabel))
+                                if minDistance <= config.DISTANCE_NOMASK and minDistance < saveMinDis:
+                                    saveMinDis = minDistanceFace
+                                    predictLabel = label[:-2]
+                                    
+                            if checkmask == 0:
+                                databaseVector = np.array(dicts.get(label))
+                                similarities = distance.cdist(listFaceVector, databaseVector, metric='cosine')
+                                maxSimilarity = max(np.squeeze(similarities))
 
-                        minDistanceFace = min(distanceFace.max(axis=0))
-
-                        if minDistanceFace <= config.DISTANCE_MASK and checkmask == 0:
-                            if minDistanceFace <= saveMin:
-                                saveMin = minDistanceFace
-                                predictLabel = label
-
-                        if minDistanceFace <= config.DISTANCE_NOMASK and checkmask == 1:
-                            if minDistanceFace <= saveMin_mask:
-                                saveMin_mask = minDistanceFace
-                                predictLabel = label
+                                if maxSimilarity >= 0.6 and maxSimilarity > saveMaxSim:
+                                    saveMaxSim = maxSimilarity
+                                    predictLabel = label[:-2]
 
                 listLabels.append(predictLabel)
 
