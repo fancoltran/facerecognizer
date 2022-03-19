@@ -101,15 +101,16 @@ class FaceRecognition:
 
                 if face is not None and face != []:
                     checkmask = FaceRecognition.check_mask_bonus(startX, startY, endX, endY, frame)
-                    listFaceVector = []
-                    faceVector = FaceRecognition.convertFaceToArray(face)
-                    faceVector = np.resize(faceVector, (256,))
-                    faceVectors = faceVector.reshape(256)
-                    listFaceVector.append(faceVectors)
-                    listFaceVector = np.asarray(listFaceVector)
+                    
                     for label in dicts:
                         if checkmask == int(label[-1]):
                             if checkmask == 1:
+                                listFaceVector = []
+                                faceVector = FaceRecognition.convertFaceToArray(face)
+                                faceVector = np.resize(faceVector, (256,))
+                                faceVectors = faceVector.reshape(256)
+                                listFaceVector.append(faceVectors)
+                                listFaceVector = np.asarray(listFaceVector)
                                 databaseVector = np.array(dicts.get(label))
                                 distances = distance.cdist(listFaceVector, databaseVector)
                                 minDistance = min(np.squeeze(distances))
@@ -119,6 +120,13 @@ class FaceRecognition:
                                     predictLabel = label[:-2]
                                     
                             if checkmask == 0:
+                                istFaceVector = []
+                                faceVector = FaceRecognition.convertMaskedFaceToArray(face)
+                                faceVector = np.resize(faceVector, (512,))
+                                faceVectors = faceVector.reshape(512)
+                                listFaceVector.append(faceVectors)
+                                listFaceVector = np.asarray(listFaceVector)
+
                                 databaseVector = np.array(dicts.get(label))
                                 similarities = distance.cdist(listFaceVector, databaseVector, metric='cosine')
                                 maxSimilarity = max(np.squeeze(similarities))
