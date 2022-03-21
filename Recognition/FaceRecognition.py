@@ -9,6 +9,9 @@ import vlc
 import time
 import imutils
 import config
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+from tensorflow.keras.preprocessing.image import load_img
+from tensorflow.keras.preprocessing.image import img_to_array
 
 # Load face detection model - MobileFaceNet_SE
 interpreter = tf.lite.Interpreter(model_path="Recognition/face_model/mobileFacenet_se.tflite")
@@ -18,7 +21,7 @@ inputDetails = interpreter.get_input_details()
 outputDetails = interpreter.get_output_details()
 
 # Load face embedding model 
-interpreterMask = tf.lite.Interpreter(model_path="Recognition/face_model/facemask.tflite")
+interpreterMask = tf.lite.Interpreter(model_path="Recognition/face_model/mask_detect_mobilenet.tflite")
 interpreterMask.allocate_tensors()
 # Get input and output tensors.
 inputDetailsMask = interpreterMask.get_input_details()
@@ -54,21 +57,19 @@ class FaceRecognition:
         face = cv2.resize(face, (112, 112))
         face = np.expand_dims(face, axis=0)
         face = (face / 255).astype('float32')
-        input_data = face
-        interpreter.set_tensor(inputDetails[0]['index'], input_data)
+        interpreter.set_tensor(inputDetails[0]['index'], face)
         interpreter.invoke()
         outputData = interpreter.get_tensor(outputDetails[0]['index'])
         return outputData
 
     @staticmethod
-    def check_mask_bonus(startX, startY, endX, endY, frame):
-        face = frame[startY:endY, startX:endX]
+    def check_mask_bonus(face):
         face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
         face = cv2.resize(face, (224, 224))
+        face = preprocess_input(face)
         face = np.expand_dims(face, axis=0)
-        face = (face / 255).astype('float32')
-        input_dataMask = face
-        interpreterMask.set_tensor(inputDetailsMask[0]['index'], input_dataMask)
+        face = face.astype('float32')
+        interpreterMask.set_tensor(inputDetailsMask[0]['index'], face)
         interpreterMask.invoke()
         predictions = interpreterMask.get_tensor(outputDetailsMask[0]['index'])
         label = np.argmax(predictions)
@@ -90,7 +91,6 @@ class FaceRecognition:
                     (detections[0, 0, i, 3] > detections[0, 0, i, 5]) or \
                     (detections[0, 0, i, 4] > detections[0, 0, i, 6]):
                 continue
-            # predict
 
             box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
             (startX, startY, endX, endY) = box.astype("int")
@@ -100,35 +100,26 @@ class FaceRecognition:
                 face = frame[startY:endY, startX:endX]
 
                 if face is not None and face != []:
-                    checkmask = FaceRecognition.check_mask_bonus(startX, startY, endX, endY, frame)
-                    
+                    checkmask = FaceRecognition.check_mask_bonus(face)
+                    if checkmask == 1:
+                        faceVector = FaceRecognition.convertFaceToArray(face)
+                    if checkmask == 0:
+                        faceVector = FaceRecognition.convertMaskedFaceToArray(face)
+
                     for label in dicts:
-                        if checkmask == int(label[-1]):
+                        if label.endswith(str(checkmask)):
                             if checkmask == 1:
-                                listFaceVector = []
-                                faceVector = FaceRecognition.convertFaceToArray(face)
-                                faceVector = np.resize(faceVector, (256,))
-                                faceVectors = faceVector.reshape(256)
-                                listFaceVector.append(faceVectors)
-                                listFaceVector = np.asarray(listFaceVector)
                                 databaseVector = np.array(dicts.get(label))
-                                distances = distance.cdist(listFaceVector, databaseVector)
+                                distances = distance.cdist(faceVector, databaseVector)
                                 minDistance = min(np.squeeze(distances))
 
                                 if minDistance <= config.DISTANCE_NOMASK and minDistance < saveMinDis:
-                                    saveMinDis = minDistanceFace
+                                    saveMinDis = minDistance
                                     predictLabel = label[:-2]
                                     
                             if checkmask == 0:
-                                istFaceVector = []
-                                faceVector = FaceRecognition.convertMaskedFaceToArray(face)
-                                faceVector = np.resize(faceVector, (512,))
-                                faceVectors = faceVector.reshape(512)
-                                listFaceVector.append(faceVectors)
-                                listFaceVector = np.asarray(listFaceVector)
-
                                 databaseVector = np.array(dicts.get(label))
-                                similarities = distance.cdist(listFaceVector, databaseVector, metric='cosine')
+                                similarities = distance.cdist(faceVector, databaseVector, metric='cosine')
                                 maxSimilarity = max(np.squeeze(similarities))
 
                                 if maxSimilarity >= 0.6 and maxSimilarity > saveMaxSim:
@@ -138,13 +129,6 @@ class FaceRecognition:
                 listLabels.append(predictLabel)
 
         return listLabels, listFaces
-
-
-    @staticmethod
-    def getIdName(label):
-        name = label.split("_")[0]
-        id_ = label.split("_")[1]
-        return name, id_
 
     @staticmethod
     def saveUnKownFace(face, local):
@@ -170,28 +154,20 @@ class FaceRecognition:
         net.setPreferableBackend(cv2.dnn.DNN_BACKEND_CUDA)
         net.setPreferableTarget(cv2.dnn.DNN_TARGET_CUDA)
 
-        # keep looping
         currentDict = {}
         while True:
             gc.collect()
             while not dictQueue.empty():
                 currentDict.update(dictQueue.get())
-            # check to see if there is a frame in our input queue
             if not inputQueue.empty():
-                # grab the frame from the input queue, resize it, and
-                # construct a blob from it
                 frame = inputQueue.get()
                 #frame = imutils.resize(frame, width=640)
                 result = {}
                 blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
-
-                # set the blob as input to our deep learning object
-                # detector and obtain the detections
                 net.setInput(blob)
                 detections = net.forward()
                 if detections is not None:
                     listLabels, listFaces = FaceRecognition.faceRecognition(detections, frame, currentDict)
-                    # write the detections to the output queue
                     result['labels'] = listLabels
                     result['faces'] = listFaces
                     result['detections'] = detections
