@@ -112,7 +112,7 @@ class FaceRecognition:
                                 databaseVector = np.array(dicts.get(label))
                                 distances = distance.cdist(faceVector, databaseVector)
                                 minDistance = min(np.squeeze(distances))
-
+                                print(minDistance)
                                 if minDistance <= config.DISTANCE_NOMASK and minDistance < saveMinDis:
                                     saveMinDis = minDistance
                                     predictLabel = label[:-2]
@@ -121,8 +121,8 @@ class FaceRecognition:
                                 databaseVector = np.array(dicts.get(label))
                                 similarities = distance.cdist(faceVector, databaseVector, metric='cosine')
                                 maxSimilarity = max(np.squeeze(similarities))
-
-                                if maxSimilarity >= 0.6 and maxSimilarity > saveMaxSim:
+                                print(maxSimilarity)
+                                if maxSimilarity >= DISTANCE_MASK and maxSimilarity > saveMaxSim:
                                     saveMaxSim = maxSimilarity
                                     predictLabel = label[:-2]
 
