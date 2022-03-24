@@ -100,7 +100,7 @@ class FaceRecognition:
                 predictLabel = 'người lạ'
                 face = frame[startY:endY, startX:endX]
 
-                if face is not None and face != []:
+                if face:
                     checkmask = FaceRecognition.check_mask_bonus(face)
                     if checkmask == 1:
                         faceVector = FaceRecognition.convertFaceToArray(face)
@@ -118,14 +118,8 @@ class FaceRecognition:
                                     saveMinDis = minDistance
                                     predictLabel = label[:-2]
                                     
-                            if checkmask == 0:
-                                max_ = -99
-                                for vec in dicts.get(label):
-                                    vec = vec/np.linalg.norm(vec)
-                                    max_ = max(np.dot(vec, faceVector.T), max_) 
-                                 
-                    
-                               
+                            if checkmask == 0: 
+                                max_ = max(np.dot(vec/np.linalg.norm(vec), faceVector.T) for vec in dicts.get(label)) 
                                 if max_ >= config.DISTANCE_MASK and max_ > saveMaxSim:
                                     print(max_)
                                     saveMaxSim = max_
