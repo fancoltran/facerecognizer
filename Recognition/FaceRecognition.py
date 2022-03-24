@@ -48,6 +48,7 @@ class FaceRecognition:
         interpreterMaskEmbed.set_tensor(inputDetailsMaskEmbed[0]['index'], face)
         interpreterMaskEmbed.invoke()
         outputData = interpreterMaskEmbed.get_tensor(outputDetailsMaskEmbed[0]['index'])
+        outputData = outputData / np.linalg.norm(outputData)
         return outputData
 
 
@@ -112,23 +113,27 @@ class FaceRecognition:
                                 databaseVector = np.array(dicts.get(label))
                                 distances = distance.cdist(faceVector, databaseVector)
                                 minDistance = min(np.squeeze(distances))
-                                print(minDistance)
+                               
                                 if minDistance <= config.DISTANCE_NOMASK and minDistance < saveMinDis:
                                     saveMinDis = minDistance
                                     predictLabel = label[:-2]
                                     
                             if checkmask == 0:
-                                databaseVector = np.array(dicts.get(label))
-                                similarities = distance.cdist(faceVector, databaseVector, metric='cosine')
-                                maxSimilarity = max(np.squeeze(similarities))
-                                print(maxSimilarity)
-                                if maxSimilarity >= DISTANCE_MASK and maxSimilarity > saveMaxSim:
-                                    saveMaxSim = maxSimilarity
+                                max_ = -99
+                                for vec in dicts.get(label):
+                                    vec = vec/np.linalg.norm(vec)
+                                    max_ = max(np.dot(vec, faceVector.T), max_) 
+                                 
+                    
+                               
+                                if max_ >= config.DISTANCE_MASK and max_ > saveMaxSim:
+                                    print(max_)
+                                    saveMaxSim = max_
                                     predictLabel = label[:-2]
-
+                print(f"{predictLabel}{'mask' if checkmask==0 else 'nomask'}")
                 listLabels.append(predictLabel)
 
-        return listLabels, listFaces
+        return listLabels, listFaces, 
 
     @staticmethod
     def saveUnKownFace(face, local):
