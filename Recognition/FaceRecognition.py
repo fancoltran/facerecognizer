@@ -100,7 +100,7 @@ class FaceRecognition:
                 predictLabel = 'người lạ'
                 face = frame[startY:endY, startX:endX]
 
-                if face:
+                if face.size > 0:
                     checkmask = FaceRecognition.check_mask_bonus(face)
                     if checkmask == 1:
                         faceVector = FaceRecognition.convertFaceToArray(face)
