@@ -67,7 +67,7 @@ class Account:
                 mainDB.executeQuery(
                     db.select([table.columns.accountTitle, table.columns.faces, table.columns.accountId])
                         .where(table.columns.lastLoadFaceTime >= lastTime)))
-        dictionary = {}
+        dictionary = {1: {}, 0: {}}
         for key, faces, _id in data:
             results = []
             for row in faces.split("],["):
@@ -76,8 +76,8 @@ class Account:
                 row = [float(num) for num in row.split(", ")]
                 results.append(row)
 
-            dictionary.update({1: {key + "_" + _id: [results[0]]}})
-            dictionary.update({0: {key + "_" + _id: results[1:]}})
+            dictionary[1].update({key + "_" + _id: [results[0]]})
+            dictionary[0].update( {key + "_" + _id: results[1:]})
 
         return dictionary
 
