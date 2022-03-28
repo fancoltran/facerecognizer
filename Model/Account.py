@@ -75,8 +75,8 @@ class Account:
                 row = row.replace(']]', '')
                 row = [float(num) for num in row.split(", ")]
                 results.append(row)
-            dictionary.update({key + "_" + _id + "_1": results[0]})
-            dictionary.update({key + "_" + _id + "_0": results[1:]})
+            dictionary.update({1: {key + "_" + _id: results[0]}})
+            dictionary.update({0: {key + "_" + _id: results[1:]}})
 
         return dictionary
 
