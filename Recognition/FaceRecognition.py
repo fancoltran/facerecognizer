@@ -157,7 +157,9 @@ class FaceRecognition:
         while True:
             gc.collect()
             while not dictQueue.empty():
-                currentDict.update(dictQueue.get())
+                newDict = dictQueue.get()
+                currentDict[1].update(newDict[1])
+                currentDict[0].update(newDict[0])
             if not inputQueue.empty():
                 frame = inputQueue.get()
                 #frame = imutils.resize(frame, width=640)
